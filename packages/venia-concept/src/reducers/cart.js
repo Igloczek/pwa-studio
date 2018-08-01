@@ -1,5 +1,7 @@
 import debounce from 'lodash.debounce';
 
+import actions from 'src/actions/cart';
+import checkoutActions from 'src/actions/checkout';
 import BrowserPersistence from 'src/util/simplePersistence';
 
 export default async function makeCartReducer() {
@@ -17,7 +19,7 @@ export default async function makeCartReducer() {
     });
     const reducer = (state = getInitialState(), { error, payload, type }) => {
         switch (type) {
-            case 'CREATE_GUEST_CART': {
+            case [actions.createGuestCart]: {
                 // don't await the save, it can happen in the background
                 storage.setItem('guestCartId', payload);
                 return {
@@ -25,7 +27,7 @@ export default async function makeCartReducer() {
                     guestCartId: payload
                 };
             }
-            case 'GET_CART_DETAILS': {
+            case [actions.getCartDetails]: {
                 return {
                     ...state,
                     ...payload,
@@ -38,7 +40,7 @@ export default async function makeCartReducer() {
                     }
                 };
             }
-            case 'ADD_ITEM_TO_CART': {
+            case [actions.addItem]: {
                 // cart items don't have images in the REST API;
                 // this is the most efficient way to manage that,
                 // but it should go in a data layer
@@ -60,7 +62,7 @@ export default async function makeCartReducer() {
                     showError: error
                 };
             }
-            case 'ACCEPT_ORDER': {
+            case [checkoutActions.acceptOrder]: {
                 storage.removeItem('guestCartId');
                 return {
                     ...getInitialState(),

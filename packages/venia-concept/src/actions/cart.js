@@ -1,16 +1,25 @@
+import { createActions } from 'redux-actions';
 import { RestApi } from '@magento/peregrine';
 
 import { closeDrawer, toggleDrawer } from 'src/actions/app';
+import checkoutActions from 'src/actions/checkout';
+
+const prefix = 'CART';
+const actionTypes = ['ADD_ITEM', 'CREATE_GUEST_CART', 'GET_CART_DETAILS'];
+
+const actions = createActions(...actionTypes, { prefix });
+export default actions;
+
+/* async action creators */
 
 const { request } = RestApi.Magento2;
 
-const createGuestCart = () =>
-    async function thunk(...args) {
-        const [dispatch, getState] = args;
+export const createGuestCart = () =>
+    async function thunk(dispatch, getState) {
         const { checkout } = getState();
 
         if (checkout && checkout.status === 'ACCEPTED') {
-            dispatch({ type: 'RESET_CHECKOUT' });
+            dispatch(checkoutActions.resetCheckout());
         }
 
         try {
@@ -18,25 +27,17 @@ const createGuestCart = () =>
                 method: 'POST'
             });
 
-            dispatch({
-                type: 'CREATE_GUEST_CART',
-                payload: response
-            });
+            dispatch(actions.createGuestCart(response));
         } catch (error) {
-            dispatch({
-                type: 'CREATE_GUEST_CART',
-                payload: error,
-                error: true
-            });
+            dispatch(actions.createGuestCart(error));
         }
     };
 
-const addItemToCart = payload => {
+export const addItemToCart = (payload = {}) => {
     const { item, quantity } = payload;
 
-    return async function thunk(...args) {
-        const [dispatch] = args;
-        const guestCartId = await getGuestCartId(...args);
+    return async function thunk(dispatch) {
+        const guestCartId = await getGuestCartId(...arguments);
 
         try {
             const cartItem = await request(
@@ -54,14 +55,7 @@ const addItemToCart = payload => {
                 }
             );
 
-            dispatch({
-                type: 'ADD_ITEM_TO_CART',
-                payload: {
-                    cartItem,
-                    item,
-                    quantity
-                }
-            });
+            dispatch(actions.addItemToCart({ cartItem, item, quantity }));
         } catch (error) {
             const { response } = error;
 
@@ -69,31 +63,24 @@ const addItemToCart = payload => {
                 // guest cart expired!
                 await dispatch(createGuestCart());
                 // re-execute this thunk
-                return thunk(...args);
+                return thunk(...arguments);
             }
 
-            dispatch({
-                type: 'ADD_ITEM_TO_CART',
-                payload: error,
-                error: true
-            });
+            dispatch(actions.addItemToCart(error));
         }
 
         await Promise.all([
-            getCartDetails({ forceRefresh: true })(...args),
-            toggleCart()(...args)
+            dispatch(getCartDetails({ forceRefresh: true })),
+            dispatch(toggleCart())
         ]);
-
-        return payload;
     };
 };
 
-const getCartDetails = (payload = {}) => {
+export const getCartDetails = (payload = {}) => {
     const { forceRefresh } = payload;
 
-    return async function thunk(...args) {
-        const [dispatch] = args;
-        const guestCartId = await getGuestCartId(...args);
+    return async function thunk(dispatch) {
+        const guestCartId = await getGuestCartId(...arguments);
 
         try {
             const [details, totals] = await Promise.all([
@@ -105,10 +92,7 @@ const getCartDetails = (payload = {}) => {
                 })
             ]);
 
-            dispatch({
-                type: 'GET_CART_DETAILS',
-                payload: { details, totals }
-            });
+            dispatch(actions.getCartDetails({ details, totals }));
         } catch (error) {
             const { response } = error;
 
@@ -116,23 +100,16 @@ const getCartDetails = (payload = {}) => {
                 // guest cart expired!
                 await dispatch(createGuestCart());
                 // re-execute this thunk
-                return thunk(...args);
+                return thunk(...arguments);
             }
 
-            dispatch({
-                type: 'GET_CART_DETAILS',
-                payload: error,
-                error: true
-            });
+            dispatch(actions.getCartDetails(error));
         }
-
-        return payload;
     };
 };
 
-const toggleCart = () =>
-    async function thunk(...args) {
-        const [dispatch, getState] = args;
+export const toggleCart = () =>
+    async function thunk(dispatch, getState) {
         const { app, cart } = getState();
 
         // ensure state slices are present
@@ -153,6 +130,8 @@ const toggleCart = () =>
         ]);
     };
 
+/* helpers */
+
 async function fetchCartPart({ guestCartId, forceRefresh, subResource = '' }) {
     if (!guestCartId) {
         return null;
@@ -163,10 +142,10 @@ async function fetchCartPart({ guestCartId, forceRefresh, subResource = '' }) {
     });
 }
 
-async function getGuestCartId(dispatch, getState) {
+export async function getGuestCartId(dispatch, getState) {
     const { cart } = getState();
 
-    // reducers may be added asynchronously
+    // ensure state slices are present
     if (!cart) {
         return null;
     }
@@ -179,5 +158,3 @@ async function getGuestCartId(dispatch, getState) {
     // retrieve app state again
     return getState().cart.guestCartId;
 }
-
-export { addItemToCart, getCartDetails, getGuestCartId, toggleCart };

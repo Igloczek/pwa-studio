@@ -1,12 +1,10 @@
+import { createActions } from 'redux-actions';
 import { RestApi } from '@magento/peregrine';
 
 import { closeDrawer } from 'src/actions/app';
 import { getGuestCartId } from 'src/actions/cart';
-import * as durations from 'src/shared/durations';
-import timeout from 'src/util/timeout';
 
-const { request } = RestApi.Magento2;
-
+// TODO: replace with real address data
 const mockAddress = {
     country_id: 'US',
     firstname: 'Veronica',
@@ -21,13 +19,32 @@ const mockAddress = {
     email: 'veronica@example.com'
 };
 
-const enterSubflow = () =>
+const prefix = 'CHECKOUT';
+const actionTypes = [
+    'RECEIVE_ORDER',
+    'RESET_CHECKOUT',
+    'ACCEPT_ORDER',
+    'REJECT_ORDER',
+    'SUBMIT_ORDER',
+    'ACCEPT_SHIPPING_INFORMATION',
+    'REJECT_SHIPPING_INFORMATION',
+    'SUBMIT_SHIPPING_INFORMATION'
+];
+
+const actions = createActions(...actionTypes, { prefix });
+export default actions;
+
+/* action creators */
+
+const { request } = RestApi.Magento2;
+
+export const enterSubflow = () =>
     async function thunk(dispatch) {
-        dispatch({ type: 'SUBMIT_SHIPPING_INFORMATION' });
+        dispatch(actions.submitShippingInformation());
 
         try {
             const guestCartId = await getGuestCartId(...arguments);
-            const payload = await request(
+            const response = await request(
                 `/rest/V1/guest-carts/${guestCartId}/shipping-information`,
                 {
                     method: 'POST',
@@ -43,38 +60,28 @@ const enterSubflow = () =>
                 }
             );
 
-            dispatch({
-                type: 'ACCEPT_SHIPPING_INFORMATION',
-                payload
-            });
+            dispatch(actions.acceptShippingInformation(response));
         } catch (error) {
-            dispatch({
-                type: 'REJECT_SHIPPING_INFORMATION',
-                payload: error,
-                error: true
-            });
+            dispatch(actions.rejectShippingInformation(error));
         }
     };
 
-const resetCheckout = () => async dispatch => {
-    await closeDrawer()(dispatch);
-    dispatch({ type: 'RESET_CHECKOUT' });
+export const requestOrder = () => async dispatch => {
+    dispatch(actions.receiveOrder());
 };
 
-const requestOrder = () => async dispatch => {
-    dispatch({ type: 'REQUEST_ORDER' });
-    // TODO: replace with api call
-    await timeout(durations.requestOrder);
-    dispatch({ type: 'RECEIVE_ORDER' });
+export const resetCheckout = () => async dispatch => {
+    await dispatch(closeDrawer());
+    dispatch(actions.resetCheckout());
 };
 
-const submitOrder = () =>
+export const submitOrder = () =>
     async function thunk(dispatch) {
-        dispatch({ type: 'SUBMIT_ORDER' });
+        dispatch(actions.submitOrder());
 
         try {
             const guestCartId = await getGuestCartId(...arguments);
-            const payload = await request(
+            const response = await request(
                 `/rest/V1/guest-carts/${guestCartId}/order`,
                 {
                     method: 'PUT',
@@ -87,17 +94,8 @@ const submitOrder = () =>
                 }
             );
 
-            dispatch({
-                type: 'ACCEPT_ORDER',
-                payload
-            });
+            dispatch(actions.acceptOrder(response));
         } catch (error) {
-            dispatch({
-                type: 'REJECT_ORDER',
-                payload: error,
-                error: true
-            });
+            dispatch(actions.rejectOrder(error));
         }
     };
-
-export { enterSubflow, requestOrder, resetCheckout, submitOrder };

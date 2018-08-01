@@ -1,15 +1,20 @@
-import timeout from 'src/util/timeout';
-import {
-    drawerClose as closeMs,
-    drawerOpen as openMs
-} from 'src/shared/durations';
+import { createActions } from 'redux-actions';
 
-export const toggleDrawer = drawerName => dispatch => {
-    dispatch({
-        type: 'TOGGLE_DRAWER',
-        payload: drawerName
-    });
-    return timeout(drawerName ? openMs : closeMs);
+import timeout from 'src/util/timeout';
+import { drawerClose, drawerOpen } from 'src/shared/durations';
+
+const prefix = 'APP';
+const actionTypes = ['TOGGLE_DRAWER'];
+
+const actions = createActions(...actionTypes, { prefix });
+export default actions;
+
+/* async action creators */
+
+export const toggleDrawer = drawerName => async dispatch => {
+    dispatch(actions.toggleDrawer(drawerName));
+
+    return timeout(drawerName ? drawerOpen : drawerClose);
 };
 
 export const closeDrawer = () => toggleDrawer(null);

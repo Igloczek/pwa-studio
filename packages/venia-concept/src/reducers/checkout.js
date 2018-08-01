@@ -1,3 +1,5 @@
+import actions from 'src/actions/checkout';
+
 const initialState = {
     shippingInformation: false,
     status: 'READY',
@@ -6,13 +8,7 @@ const initialState = {
 
 const reducer = (state = initialState, { payload, type }) => {
     switch (type) {
-        case 'REQUEST_ORDER': {
-            return {
-                ...state,
-                status: 'REQUESTING'
-            };
-        }
-        case 'RECEIVE_ORDER': {
+        case [actions.receiveOrder]: {
             return {
                 ...state,
                 status: 'MODIFYING'
@@ -32,31 +28,31 @@ const reducer = (state = initialState, { payload, type }) => {
                 subflow: null
             };
         }
-        case 'SUBMIT_SHIPPING_INFORMATION': {
+        case [actions.submitShippingInformation]: {
             return {
                 ...state,
                 shippingInformation: true
             };
         }
-        case 'SUBMIT_ORDER': {
+        case [actions.submitOrder]: {
             return {
                 ...state,
                 status: 'SUBMITTING'
             };
         }
-        case 'REJECT_ORDER': {
+        case [actions.rejectOrder]: {
             return {
                 ...state,
                 status: 'MODIFYING'
             };
         }
-        case 'ACCEPT_ORDER': {
+        case [actions.acceptOrder]: {
             return {
                 ...state,
                 status: 'ACCEPTED'
             };
         }
-        case 'RESET_CHECKOUT': {
+        case [actions.resetCheckout]: {
             return initialState;
         }
         default: {

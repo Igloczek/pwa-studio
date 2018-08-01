@@ -1,12 +1,14 @@
+import actions from 'src/actions/app';
+
 const initialState = {
     drawer: null,
     overlay: false,
     pending: {}
 };
 
-const reducer = (state = initialState, { error, payload, type }) => {
+const reducer = (state = initialState, { payload, type }) => {
     switch (type) {
-        case 'TOGGLE_DRAWER': {
+        case [actions.toggleDrawer]: {
             return {
                 ...state,
                 drawer: payload,
@@ -14,12 +16,6 @@ const reducer = (state = initialState, { error, payload, type }) => {
             };
         }
         default: {
-            if (error) {
-                return {
-                    ...state,
-                    error
-                };
-            }
             return state;
         }
     }
