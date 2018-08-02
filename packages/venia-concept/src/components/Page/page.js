@@ -4,6 +4,7 @@ import { compose } from 'redux';
 import PropTypes from 'prop-types';
 
 import classify from 'src/classify';
+import { closeDrawer } from 'src/actions/app';
 import Main from 'src/components/Main';
 import MiniCart from 'src/components/MiniCart';
 import Navigation from 'src/components/Navigation';
@@ -37,9 +38,7 @@ class Page extends Component {
     }
 }
 
-const mapDispatchToProps = dispatch => ({
-    closeDrawer: () => dispatch({ type: 'TOGGLE_DRAWER', payload: null })
-});
+const mapDispatchToProps = { closeDrawer };
 
 export default compose(
     classify(defaultClasses),

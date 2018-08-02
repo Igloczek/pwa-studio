@@ -1,8 +1,10 @@
 import { createActions } from 'redux-actions';
 import { RestApi } from '@magento/peregrine';
+import debounce from 'lodash.debounce';
 
 import { closeDrawer, toggleDrawer } from 'src/actions/app';
 import checkoutActions from 'src/actions/checkout';
+import BrowserPersistence from 'src/util/simplePersistence';
 
 const prefix = 'CART';
 const actionTypes = ['ADD_ITEM', 'CREATE_GUEST_CART', 'GET_CART_DETAILS'];
@@ -13,6 +15,7 @@ export default actions;
 /* async action creators */
 
 const { request } = RestApi.Magento2;
+// const storage = new BrowserPersistence();
 
 export const createGuestCart = () =>
     async function thunk(dispatch, getState) {
@@ -55,7 +58,7 @@ export const addItemToCart = (payload = {}) => {
                 }
             );
 
-            dispatch(actions.addItemToCart({ cartItem, item, quantity }));
+            dispatch(actions.addItem({ cartItem, item, quantity }));
         } catch (error) {
             const { response } = error;
 
@@ -66,7 +69,7 @@ export const addItemToCart = (payload = {}) => {
                 return thunk(...arguments);
             }
 
-            dispatch(actions.addItemToCart(error));
+            dispatch(actions.addItem(error));
         }
 
         await Promise.all([

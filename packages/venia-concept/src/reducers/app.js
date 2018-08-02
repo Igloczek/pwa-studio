@@ -1,4 +1,8 @@
+import { handleActions } from 'redux-actions';
+
 import actions from 'src/actions/app';
+
+export const name = 'app';
 
 const initialState = {
     drawer: null,
@@ -6,21 +10,17 @@ const initialState = {
     pending: {}
 };
 
-const reducer = (state = initialState, { payload, type }) => {
-    switch (type) {
-        case [actions.toggleDrawer]: {
+export default handleActions(
+    {
+        [actions.toggleDrawer]: (state, { payload }) => {
             return {
                 ...state,
                 drawer: payload,
                 overlay: !!payload
             };
         }
-        default: {
-            return state;
-        }
-    }
-};
+    },
+    initialState
+);
 
-const selectAppState = ({ app }) => ({ app });
-
-export { reducer as default, selectAppState };
+export const selectAppState = ({ app }) => ({ app });

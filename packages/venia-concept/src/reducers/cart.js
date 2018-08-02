@@ -1,10 +1,53 @@
+import { handleActions } from 'redux-actions';
 import debounce from 'lodash.debounce';
 
 import actions from 'src/actions/cart';
 import checkoutActions from 'src/actions/checkout';
 import BrowserPersistence from 'src/util/simplePersistence';
 
-export default async function makeCartReducer() {
+export const name = 'cart';
+
+const initialState = {
+    details: {},
+    guestCartId: null,
+    totals: {}
+};
+
+export default handleActions(
+    {
+        [actions.createGuestCart]: (state, { payload }) => {
+            return {
+                ...state,
+                guestCartId: payload
+            };
+        },
+        [actions.getCartDetails]: (state, { payload }) => {
+            return {
+                ...state,
+                ...payload,
+                details: {
+                    ...payload.details,
+                    items: payload.details.items.map(item => ({
+                        ...item,
+                        image: item.image
+                    }))
+                }
+            };
+        },
+        [actions.addItem]: (state, { error }) => {
+            return {
+                ...state,
+                showError: error
+            };
+        },
+        [checkoutActions.acceptOrder]: () => {
+            return initialState;
+        }
+    },
+    initialState
+);
+
+export async function makeCartReducer() {
     const storage = new BrowserPersistence();
     const imagesBySku = (await storage.getItem('imagesBySku')) || {};
     const saveImagesBySkuCache = debounce(

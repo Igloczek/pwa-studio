@@ -1,5 +1,7 @@
 import actions from 'src/actions/checkout';
 
+export const name = 'checkout';
+
 const initialState = {
     shippingInformation: false,
     status: 'READY',
@@ -61,6 +63,5 @@ const reducer = (state = initialState, { payload, type }) => {
     }
 };
 
-const selectCheckoutState = ({ checkout }) => ({ checkout });
-
-export { reducer as default, selectCheckoutState };
+export default reducer;
+export const selectCheckoutState = ({ checkout }) => ({ checkout });
