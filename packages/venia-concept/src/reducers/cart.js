@@ -15,29 +15,20 @@ const initialState = {
 
 export default handleActions(
     {
-        [actions.createGuestCart]: (state, { payload }) => {
+        [actions.receiveGuestCart]: (state, { payload }) => {
             return {
                 ...state,
                 guestCartId: payload
             };
         },
-        [actions.getCartDetails]: (state, { payload }) => {
+        [actions.updateDetails]: (state, { payload, error }) => {
+            if (error) {
+                return state;
+            }
+
             return {
                 ...state,
-                ...payload,
-                details: {
-                    ...payload.details,
-                    items: payload.details.items.map(item => ({
-                        ...item,
-                        image: item.image
-                    }))
-                }
-            };
-        },
-        [actions.addItem]: (state, { error }) => {
-            return {
-                ...state,
-                showError: error
+                ...payload
             };
         },
         [checkoutActions.acceptOrder]: () => {
