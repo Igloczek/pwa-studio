@@ -112,11 +112,7 @@
     "webpack-dev-server": "2.11.0",
     "xml": "^1.0.1"
   },
-  "dependencies": {
-    "@magento/peregrine": "file:packages/peregrine",
-    "@magento/pwa-buildpack": "file:packages/pwa-buildpack",
-    "pwa-devdocs": "file:packages/pwa-devdocs",
-    "@magento/upward-js": "file:packages/upward-js",
-    "@magento/upward-spec": "file:packages/upward-spec"
-  }
+  "workspaces": [
+    "packages/*"
+  ]
 }
